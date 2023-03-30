@@ -30,7 +30,7 @@ e.g. near deploy near deploy --wasmFile res/mysmartcontractbuildfile.wasm --acco
 
 near deploy --wasmFile res/simple_nft_mfg.wasm --initFunction new --initArgs "{\"owner_id\":\"asd.testnet\"}" --accountId asd.testnet
 
-# Test the mint nft function (Note, you will need IPFS storage for reference of the NFT uri)
+# Test the mint nft function (Note, you will need IPFS storage for reference of the NFT uri/media key)
  
 near call asd.testnet mint_nft "{\"token_id\":\"1\",\"receiver_id\":\"asd.testnet\",\"metadata\":{\"title\":\"NAME \",\"description\":\"One of a kind\",\"media\":\"https:\/\/asd.ipfs.nftstorage.link\"}}" --accountId asd.testnet
 
