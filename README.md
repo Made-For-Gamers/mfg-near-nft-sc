@@ -10,11 +10,10 @@ To store your non-fungible tokens you'll need a NEAR Wallet. If you don't have o
 # Building the contract
 To build your contract run the following command in your terminal which builds your contract using Rust's cargo.
 
-## Windows
-
+## Windows 
 ./scripts/build.bat
 
-## Linux
-
+## Linux 
+./scripts/build.sh
 
 
