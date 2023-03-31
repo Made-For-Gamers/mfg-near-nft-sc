@@ -2,23 +2,32 @@ use near_sdk::PanicOnDefault;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{collections::UnorderedMap, near_bindgen, AccountId, Promise, env};
 use serde::{Deserialize, Serialize};
- 
+
 #[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
-pub struct metadata {
+pub struct Metadata {
     pub title: String,
     pub description: String,
     pub media: String,
+    pub custom_fields: String,
+}
+
+#[derive(Serialize, Deserialize, BorshDeserialize, BorshSerialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
+pub struct NFT {
+    pub token_id: String,
+    pub owner_id: AccountId,
+    pub metadata: Metadata,
 }
 
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct SimpleNFT {
     nfts: UnorderedMap<String, AccountId>,
-    metadata: UnorderedMap<String, metadata>,
+    metadata: UnorderedMap<String, Metadata>,
     owner_id: AccountId,
 }
- 
+
 #[near_bindgen]
 impl SimpleNFT {
     #[init]
@@ -31,7 +40,7 @@ impl SimpleNFT {
         }
     }
 
-    pub fn mint_nft(&mut self, token_id: String, receiver_id: AccountId, metadata: metadata) {
+    pub fn mint_nft(&mut self, token_id: String, receiver_id: AccountId, metadata: Metadata) {
         assert_eq!(&self.owner_id, &env::predecessor_account_id(), "Only the owner can mint tokens");
         self.nfts.insert(&token_id, &receiver_id);
         self.metadata.insert(&token_id, &metadata);
@@ -49,9 +58,37 @@ impl SimpleNFT {
         self.nfts.insert(&token_id, &receiver_id);
     }
 
-    pub fn get_nft(&self, token_id: String) -> Option<(AccountId, metadata)> {
+    pub fn get_nft(&self, token_id: String) -> Option<NFT> {
         let owner = self.nfts.get(&token_id)?;
         let metadata = self.metadata.get(&token_id)?;
-        Some((owner, metadata))
+        Some(NFT {
+            token_id,
+            owner_id: owner.clone(),
+            metadata: metadata.clone(),
+        })
     }
+
+    pub fn get_nfts_by_owner(&self, owner_id: AccountId) -> Vec<(String, Option<Metadata>)> {
+        let mut owned_nfts = Vec::new();
+        for (token_id, owner) in self.nfts.iter() {
+            if owner == owner_id {
+                if let Some(metadata) = self.metadata.get(&token_id) {
+                    let metadata = metadata.clone();
+                    owned_nfts.push((token_id.clone(), Some(metadata)));
+                } else {
+                    owned_nfts.push((token_id.clone(), None));
+                }
+            }
+        }
+        owned_nfts
+    }
+    
+    
+
+    pub fn delete_nft(&mut self, token_id: String) {
+        assert_eq!(&self.owner_id, &env::predecessor_account_id(), "Only the owner can delete tokens");
+        self.nfts.remove(&token_id);
+        self.metadata.remove(&token_id);
+    }
+
 }
